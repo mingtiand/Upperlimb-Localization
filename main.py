@@ -106,14 +106,14 @@ def getKinematic1(file):
     x_axis = P_lr / np.sqrt(P_lr.dot(P_lr))
     y_axis = np.cross(x_axis, np.asarray([P_hip[i] - P_shoulder[i] for i in range(len(P_shoulder))]))
     y_axis = y_axis / np.sqrt(y_axis.dot(y_axis))
-    z_axis = np.cross(x_axis, y_axis);
+    z_axis = np.cross(x_axis, y_axis)
     z_axis = z_axis / np.sqrt(z_axis.dot(z_axis))
 
     TT = np.array([x_axis, y_axis, z_axis])
 
     P_se2 = np.dot(TT, P_se)
 
-    beta_shoulder = math.atan2(P_se2[2], math.sqrt(P_se2[1] ** 2 + P_se2[0] ** 2)) + math.pi / 2;
+    beta_shoulder = math.atan2(P_se2[2], math.sqrt(P_se2[1] ** 2 + P_se2[0] ** 2)) + math.pi / 2
     if P_se2[1] < 0:
         beta_shoulder = -beta_shoulder
 
@@ -172,7 +172,9 @@ def main():
                                     refine_edges=1,
                                     decode_sharpening=0.25,
                                     debug=0)
-    object_to_track = [23, 24, 11, 12,14,16] #24
+
+    # Left Hip, Right Hip, Lift Shoulder, Right Shoulder, Right Elbow, Right Wrist
+    object_to_track = [23, 24, 11, 12, 14, 16]
     rs = RealsenseCamera()
     #ik = inversekinematic()
     detector = PoseDetector()
@@ -183,6 +185,7 @@ def main():
     recording = 0
     dataID = "5_1"
     fileName = "data" + dataID + ".csv"
+    tagSize = 0.1  #m
 
     if os.path.exists(fileName):
         os.remove(fileName)
@@ -217,7 +220,6 @@ def main():
         plt.xlabel("Time ", fontsize=18)
         plt.ylabel("Degree ($\circ$)", fontsize=18)
 
-    n = 0
     while True:
 
 
@@ -231,37 +233,30 @@ def main():
         depth_frame = rs.get_frames().get_depth_frame()
         color_frame = rs.get_frames().get_color_frame()
 
-
         lmList = detector.getPosition(frame)
-
-
-
-        if (n==0):
-            n = n+1
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            tags = at_detector.detect(gray, estimate_tag_pose=True, camera_params=[1.93 * 640, 1.93 * 480, 320, 240], #1.93
-                                      tag_size=0.1)
-        else:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            tags = at_detector.detect(gray, estimate_tag_pose=True, camera_params=[1.93 * 640, 1.93 * 480, 320, 240],
-                                      tag_size=0.1)
-        if(len(tags) != 0):
-            depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
-            rbtag = tags[0].corners[1]
-
-            depth_to_object = depth_image[int(rbtag[1]), int(rbtag[0])]
-            depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, rbtag, depth_to_object / 1000)
-            rbtag = [depth_point[0],depth_point[2],-depth_point[1]]
-
-            rttag = tags[0].corners[2]
-            depth_to_object = depth_image[int(rttag[1]), int(rttag[0])]
-            depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, rttag, depth_to_object / 1000)
-            rttag = [depth_point[0],depth_point[2],-depth_point[1]]
-
-            lttag = tags[0].corners[3]
-            depth_to_object = depth_image[int(lttag[1]), int(lttag[0])]
-            depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, lttag, depth_to_object / 1000)
-            lttag = [depth_point[0],depth_point[2],-depth_point[1]]
+        depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        tags = at_detector.detect(gray, estimate_tag_pose=True, camera_params=[depth_intrin.fx, depth_intrin.fy, depth_intrin.ppx, depth_intrin.ppy],
+                                      tag_size=tagSize)
+        if (len(tags) != 0):
+            transformation = np.append(tags[0].pose_R, tags[0].pose_t, axis=1)
+            transformation = np.append(transformation, np.array([[0,0,0,1]]), axis=0)
+            transformation = np.matmul(np.linalg.inv(transformation),
+                                       np.array([[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]))
+            transformation = np.matmul(np.array([[0, 0, 1, 0], [-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1]]),
+                                       transformation)
+            # rbtag = tags[0].corners[1]
+            # depth_to_object = depth_image[int(rbtag[1]), int(rbtag[0])]
+            # depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, rbtag, depth_to_object / 1000)
+            # rbtag = [depth_point[0],depth_point[2],-depth_point[1]]
+            # rttag = tags[0].corners[2]
+            # depth_to_object = depth_image[int(rttag[1]), int(rttag[0])]
+            # depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, rttag, depth_to_object / 1000)
+            # rttag = [depth_point[0],depth_point[2],-depth_point[1]]
+            # lttag = tags[0].corners[3]
+            # depth_to_object = depth_image[int(lttag[1]), int(lttag[0])]
+            # depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, lttag, depth_to_object / 1000)
+            # lttag = [depth_point[0],depth_point[2],-depth_point[1]]
             for tag in tags:
                 cv2.circle(frame, tuple(tag.corners[0].astype(int)), 4, (255, 0, 0), 2)  # left-top
                 cv2.circle(frame, tuple(tag.corners[1].astype(int)), 4, (255, 0, 0), 2)  # right-top
@@ -272,7 +267,7 @@ def main():
             rbtag = [0,0,0]
             rttag = [0,0,0]
             lttag = [0,0,0]
-
+        shoulder_apriltag = np.array([[0],[0],[0],[1]])
         if len(lmList) != 0:
             row = []
             #visibility = []
@@ -307,7 +302,9 @@ def main():
                     # row.append(depth_point[0])
                     # row.append(depth_point[2])
                     # row.append(-depth_point[1])
-
+                    if objet == 12 and len(tags) != 0:
+                        shoulder_camera = np.array([[depth_point[0]],[depth_point[2]],[-depth_point[1]],[1]])
+                        shoulder_apriltag = np.matmul(transformation,shoulder_camera)
                     row.append(depth_point[0])
                     row.append(depth_point[2])
                     row.append(-depth_point[1])
@@ -322,8 +319,12 @@ def main():
                     row.append(0)
                     row.append(0)
                     #visibility.append(vis)
+
             #angle = ik.getKinematic(row)
             angle = getKinematic1(row)
+            row.append(shoulder_apriltag[0])
+            row.append(shoulder_apriltag[1])
+            row.append(shoulder_apriltag[2])
             #print(angle)
             #print(angle)
             #updated_y = np.append(updated_y,angle[0])
