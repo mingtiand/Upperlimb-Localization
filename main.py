@@ -11,7 +11,7 @@ def install_python_libraries(package):
 
 
 def check_and_install_libraries():
-    for package in ['pyrealsense2', 'matplotlib', 'tensorflow', 'opencv-python', 'numpy', 'mediapipe']:
+    for package in ['pyrealsense2', 'matplotlib', 'tensorflow', 'opencv-python', 'numpy', 'mediapipe','pupil_apriltags']:
         try:
             dist = pkg_resources.get_distribution(package)
             print('{} ({}) is installed'.format(dist.key, dist.version))
