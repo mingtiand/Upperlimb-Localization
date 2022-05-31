@@ -183,9 +183,9 @@ def main():
     pTime = 0
 
     recording = 0
-    dataID = "5_1"
+    dataID = "1"
     fileName = "data" + dataID + ".csv"
-    tagSize = 0.1  #m
+    tagSize = 0.1  # Meter
 
     if os.path.exists(fileName):
         os.remove(fileName)
@@ -195,11 +195,7 @@ def main():
 
     f = open('../'+fileName, 'w', newline='')
     writer = csv.writer(f)
-    header = ['dataTime','lhipx', 'lhipy', 'lhipz', 'rhipx','rhipy', 'rhipz',\
-             'lshoulderx','lshouldery','lshoulderz','rshoulderx','rshouldery','rshoulderz', \
-              'relbowx','relbowy','relbowz','rwristx','rwristy','rwristz', \
-              'rttagx', 'rttagy', 'rttagz','lttagx', 'lttagy', 'lttagz', 'rbtagx', 'rbtagy', 'rbtagz',\
-              'vislhip','visrhip','vislshoulder','visrshoulder','visrelbow','visrwrist']
+    header = ['Time', 'DoF1', 'DoF2', 'DoF3', 'DoF4', 'shoulder_x', 'shoulder_y', 'shoulder_z']
     writer.writerow(header)
 
     if sys.argv[1] == "0":
@@ -211,7 +207,6 @@ def main():
             updated_y = np.zeros(100)
         elif sys.argv[1] == "4":
             updated_y = np.ones(100)*90
-
         plt.ion()
         figure, ax = plt.subplots(figsize=(8, 6))
         ax.set_ylim(-180, 180)
@@ -221,9 +216,7 @@ def main():
         plt.ylabel("Degree ($\circ$)", fontsize=18)
 
     while True:
-
-
-        # ----------------Capture Camera Frame-----------------
+        # Capture Camera Frame
         ret, color_image, depth_image, depth_colormap = rs.get_frame_stream()
 
         # Acquire frame and resize to expected shape [1xHxWx3]
@@ -282,7 +275,6 @@ def main():
 
                     depth = depth_frame.get_distance(x, y)
                     depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
-                    # print(depth)
                     depth_to_object = depth_image[y, x]
                     # if objet == 23:
                     #     print('23: ' + str(vis))
@@ -322,9 +314,6 @@ def main():
 
             #angle = ik.getKinematic(row)
             angle = getKinematic1(row)
-            row.append(shoulder_apriltag[0])
-            row.append(shoulder_apriltag[1])
-            row.append(shoulder_apriltag[2])
             #print(angle)
             #print(angle)
             #updated_y = np.append(updated_y,angle[0])
@@ -348,9 +337,9 @@ def main():
             #row.extend(lttag)
             #row.extend(rbtag)
             #row.extend(visibility)
-
-            #if recording ==1 and row!= []:
-                #writer.writerow(row)
+            writeline = [str(datetime.datetime.now()), angle[0], angle[1], angle[2], angle[3], shoulder_apriltag[0][0], shoulder_apriltag[1][0], shoulder_apriltag[2][0]]
+            if row!= []:
+                writer.writerow(writeline)
 
             #text = "Depth: {} cm".format(depth) + " ".format(depth_to_object)
             #text = "%.5lf, %.5lf" % (depth, depth_to_object)
