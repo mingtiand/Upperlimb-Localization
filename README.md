@@ -13,16 +13,28 @@ If not, please manually install Mediapipe and Apriltag:
 
 `pip install mediapipe`
 
-`pip install pupil_apriltags`
+`pip install pupil_apriltags`  
+
+4 DoF Induction:  
+![image](image/dof.png)  
+DoF1 Plane of Elevation  
+DoF2 Elevation  
+DoF3 Internal/External  
+DoF4 Extension/Flexion  
 
 Parameter Induction for visualization:
 
-0: No visualization
+`python main.py 0` No visualization
 
-1: DoF1 Plane of Elevation
+`python main.py 1` DoF1 Plane of Elevation
 
-2: DoF2 Elevation
+`python main.py 2` DoF2 Elevation
 
-3: DoF3 Internal/External
+`python main.py 3` DoF3 Internal/External
 
-4: DoF4 Extension/Flexion
+`python main.py 4` DoF4 Extension/Flexion
+
+The program pre-assumed following operating environment, and has been evaluated   
+under simulation environment:
+
+![Whatch the video](image/simulation.gif)

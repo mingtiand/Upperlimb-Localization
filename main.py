@@ -122,7 +122,7 @@ def getKinematic1(file):
 
     beta_d = beta_shoulder * 180 / math.pi
 
-    if abs(beta_d) < 1:
+    if abs(beta_d) < 2:
         P_sw2 = np.dot(TT, P_sw)
         alpha_shoulder = math.atan2(P_sw2[1], P_sw2[0]) - math.pi / 2
         gamma_shoulder = 0
