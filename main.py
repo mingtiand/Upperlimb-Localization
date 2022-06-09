@@ -114,8 +114,8 @@ def getKinematic1(file):
     P_se2 = np.dot(TT, P_se)
 
     beta_shoulder = math.atan2(P_se2[2], math.sqrt(P_se2[1] ** 2 + P_se2[0] ** 2)) + math.pi / 2
-    if P_se2[1] < 0:
-        beta_shoulder = -beta_shoulder
+   # if P_se2[1] < 0:
+   #     beta_shoulder = -beta_shoulder
 
     elbow_ang = math.acos(np.dot(A / np.linalg.norm(A), B / np.linalg.norm(B)))
     elbow_d = elbow_ang * 180 / math.pi
@@ -221,16 +221,20 @@ def main():
 
         # Acquire frame and resize to expected shape [1xHxWx3]
         frame = color_image.copy()
-        frame = detector.findPose(frame)
+
 
         depth_frame = rs.get_frames().get_depth_frame()
         color_frame = rs.get_frames().get_color_frame()
 
-        lmList = detector.getPosition(frame)
+
         depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
+        color_intrin = color_frame.profile.as_video_stream_profile().intrinsics
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        tags = at_detector.detect(gray, estimate_tag_pose=True, camera_params=[depth_intrin.fx, depth_intrin.fy, depth_intrin.ppx, depth_intrin.ppy],
+        tags = at_detector.detect(gray, estimate_tag_pose=True, camera_params=[color_intrin.fx, color_intrin.fy, color_intrin.ppx, color_intrin.ppy],
                                       tag_size=tagSize)
+
+        frame = detector.findPose(frame)
+        lmList = detector.getPosition(frame)
         if (len(tags) != 0):
             transformation = np.append(tags[0].pose_R, tags[0].pose_t, axis=1)
             transformation = np.append(transformation, np.array([[0,0,0,1]]), axis=0)
@@ -283,7 +287,7 @@ def main():
                     #     print('24: ' + str(vis))
                     #     print(depth_to_object/1000)
                     #print(depth_intrin)
-                    depth_point = rs2.rs2_deproject_pixel_to_point(depth_intrin, [x, y], depth_to_object / 1000)  #
+                    depth_point = rs2.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth_to_object / 1000)  #
                     #if (depth_point[0] == 0 and depth_point[2] == 0):
                         #print('DEBUG: ', lmList[objet])
                     #else:
