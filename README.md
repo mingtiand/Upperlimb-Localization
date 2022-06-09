@@ -39,6 +39,6 @@ under simulation environment:
 
 ![Whatch the video](image/simulation.gif)
 
-##Coordinate System 
+## Coordinate System 
 The camera coordinate system has the origin at the center of RGB imager. The y-axis points from the imager out the lens. The x-axis is to the right in the image taken by the camera, and z is upward. The Robotic coordinate frame is centered at the center of the tag, with x-axis into the tag, y-axis to the left, and z-axis upward.
 
