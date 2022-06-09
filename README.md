@@ -15,14 +15,14 @@ If not, please manually install Mediapipe and Apriltag:
 
 `pip install pupil_apriltags`  
 
-4 DoF Induction:  
+## Degree of Freedom (DoF) Induction:  
 ![image](image/dof.png)  
 DoF1 Plane of Elevation  
 DoF2 Elevation  
 DoF3 Internal/External  
 DoF4 Extension/Flexion  
 
-Parameter Induction for visualization:
+## Parameter Induction:
 
 `python main.py 0` No visualization
 
@@ -38,3 +38,7 @@ The program pre-assumed following operating environment, and has been evaluated
 under simulation environment:
 
 ![Whatch the video](image/simulation.gif)
+
+##Coordinate System 
+The camera coordinate system has the origin at the center of RGB imager. The y-axis points from the imager out the lens. The x-axis is to the right in the image taken by the camera, and z is upward. The Robotic coordinate frame is centered at the center of the tag, with x-axis into the tag, y-axis to the left, and z-axis upward.
+
